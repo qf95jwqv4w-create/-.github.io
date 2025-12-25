@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>湿地生态多米诺模拟器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #1a4a3a 0%, #2d5a4a 50%, #1a3a4a 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 标题区域 */
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #7dd3c0, #4ecdc4, #7dd3c0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(78, 205, 196, 0.3);
+            letter-spacing: 8px;
+        }
+
+        .header-subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 10px;
+            font-size: 1.1em;
+        }
+
+        /* 滑块区域 */
+        .slider-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px 40px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .slider-title {
+            text-align: center;
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            color: #7dd3c0;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .slider-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            min-width: 80px;
+            text-align: center;
+            padding: 10px;
+            background: rgba(78, 205, 196, 0.2);
+            border-radius: 10px;
+        }
+
+        .slider-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .main-slider {
+            width: 100%;
+            height: 12px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(90deg, #e74c3c, #f39c12, #27ae60);
+            border-radius: 6px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .main-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 28px;
+            height: 28px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.8);
+            transition: transform 0.2s;
+        }
+
+        .main-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+        }
+
+        .slider-labels span {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .slider-labels small {
+            font-size: 0.7em;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 5px;
+            line-height: 1.2;
+        }
+
+        .current-value-display {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #4ecdc4;
+        }
+
+        /* 主内容区域 */
+        .main-content {
+            display: flex;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        /* 仪表盘区域 */
+        .dashboard-section {
+            flex: 2;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            background: rgba(78, 205, 196, 0.2);
+            border-radius: 15px;
+        }
+
+        .card-title {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .indicator {
+            margin: 15px 0;
+        }
+
+        .indicator-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .indicator-name {
+            font-size: 0.95em;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .indicator-value {
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .progress-bar {
+            height: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.5s ease, background-color 0.5s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            cursor: grab;
+        }
+
+        .progress-fill:active::after {
+            cursor: grabbing;
+        }
+
+        /* 文字提示区域 */
+        .text-section {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .text-title {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            color: #7dd3c0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .reaction-item {
+            background: rgba(78, 205, 196, 0.15);
+            border-left: 4px solid #4ecdc4;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 10px 10px 0;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .reaction-title {
+            font-weight: bold;
+            color: #7dd3c0;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .reaction-content {
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+
+        .arrow {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .highlight {
+            color: #4ecdc4;
+            font-weight: bold;
+        }
+
+        /* 状态指示 */
+        .status-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+
+        .status-low {
+            background: rgba(231, 76, 60, 0.3);
+            color: #e74c3c;
+        }
+
+        .status-medium {
+            background: rgba(243, 156, 18, 0.3);
+            color: #f39c12;
+        }
+
+        .status-high {
+            background: rgba(39, 174, 96, 0.3);
+            color: #27ae60;
+        }
+
+        /* 动画效果 */
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        /* 波浪动画背景 */
+        .wave-bg {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='rgba(78,205,196,0.1)' d='M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") no-repeat bottom;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* 背景图容器 */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            overflow: hidden;
+        }
+
+        /* 背景图样式 */
+        .background-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: saturate(0.6) contrast(1.2) brightness(0.7);
+            transition: filter 1s ease;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .text-section {
+                max-height: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-section {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+                letter-spacing: 4px;
+            }
+
+            .slider-container {
+                flex-direction: column;
+            }
+
+            .slider-value {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wave-bg"></div>
+    <!-- 背景图 -->
+    <div class="background-container">
+        <img src="https://i.imgur.com/0X7X9eS.jpg" alt="湿地生态背景" class="background-image" id="bgImage">
+    </div>
+    <div class="container">
+        <!-- 标题区域 -->
+        <header class="header">
+            <h1>🌿 湿地生态多米诺模拟器 🌿</h1>
+            <p class="header-subtitle">探索生态用地变化对湿地系统的连锁影响</p>
+        </header>
+
+        <!-- 滑块区域 -->
+        <section class="slider-section">
+            <h2 class="slider-title">🎚️ 生态用地面积比例调节</h2>
+            <div class="slider-container">
+                <div class="slider-value">50%</div>
+                <div class="slider-wrapper">
+                    <input type="range" class="main-slider" id="mainSlider" min="50" max="90" step="0.01" value="60.26">
+                    <div class="slider-labels">
+                        <span>50%<br><small>(2010年 衰退期)</small></span>
+                        <span>60.26%<br><small>(2015年 基准值)</small></span>
+                        <span>70%<br><small>(2018年 修复中期)</small></span>
+                        <span>80%<br><small>(2022年 修复后期)</small></span>
+                        <span>85%<br><small>(2023年 现状)</small></span>
+                        <span>90%<br><small>(2030年 规划目标)</small></span>
+                    </div>
+                </div>
+                <div class="slider-value">90%</div>
+            </div>
+            <div class="current-value-display">
+                当前值：<span id="currentValue">60.26</span>%
+            </div>
+        </section>
+
+        <!-- 主内容区域 -->
+        <div class="main-content">
+            <!-- 仪表盘区域 -->
+            <section class="dashboard-section">
+                <!-- 水文要素 -->
+                <div class="dashboard-card" id="waterCard">
+                    <div class="card-header">
+                        <div class="card-icon">💧</div>
+                        <h3 class="card-title">水文要素</h3>
+                    </div>
+                    <div class="indicator" data-type="water-storage">
+                        <div class="indicator-header">
+                            <span class="indicator-name">蓄水量</span>
+                            <span class="indicator-value" id="waterStorageValue">35%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="waterStorageBar" style="width: 35%; background: linear-gradient(90deg, #e74c3c, #f39c12);"></div>
+                        </div>
+                    </div>
+                    <div class="indicator" data-type="water-quality">
+                        <div class="indicator-header">
+                            <span class="indicator-name">水质</span>
+                            <span class="indicator-value" id="waterQualityValue">30%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="waterQualityBar" style="width: 30%; background: linear-gradient(90deg, #e74c3c, #f39c12);"></div>
+                        </div>
+                    </div>
+                    <div class="indicator" data-type="water-transparency">
+                        <div class="indicator-header">
+                            <span class="indicator-name">水体透明度</span>
+                            <span class="indicator-value" id="waterTransparencyValue">30cm</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="waterTransparencyBar" style="width: 30%; background: linear-gradient(90deg, #e74c3c, #f39c12);"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 土壤要素 -->
+                <div class="dashboard-card" id="soilCard">
+                    <div class="card-header">
+                        <div class="card-icon">🌱</div>
+                        <h3 class="card-title">土壤要素</h3>
+                    </div>
+                    <div class="indicator" data-type="fertility">
+                        <div class="indicator-header">
+                            <span class="indicator-name">肥力</span>
+                            <span class="indicator-value" id="fertilityValue">32%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="fertilityBar" style="width: 32%; background: linear-gradient(90deg, #e74c3c, #f39c12);"></div>
+                        </div>
+                    </div>
+                    <div class="indicator" data-type="salinity-improvement">
+                        <div class="indicator-header">
+                            <span class="indicator-name">盐碱地改良率</span>
+                            <span class="indicator-value" id="salinityImprovementValue">25%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="salinityImprovementBar" style="width: 25%; background: linear-gradient(90deg, #e74c3c, #f39c12);"></div>
+                        </div>
+                    </div>
+                    <div class="indicator" data-type="soil-retention">
+                        <div class="indicator-header">
+                            <span class="indicator-name">固土能力</span>
+                            <span class="indicator-value" id="soilRetentionValue">28%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="soilRetentionBar" style="width: 28%; background: linear-gradient(90deg, #e74c3c, #f39c12);"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 生物要素 -->
+                <div class="dashboard-card" id="bioCard">
+                    <div class="card-header">
+                        <div class="card-icon">🐦🐟</div>
+                        <h3 class="card-title">生物要素</h3>
+                    </div>
+                    <div class="indicator" data-type="plant-diversity">
+                        <div class="indicator-header">
+                            <span class="indicator-name">植物多样性</span>
+                            <span class="indicator-value" id="plantDiversityValue">25%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="plantDiversityBar" style="width: 25%; background: linear-gradient(90deg, #e74c3c, #f39c12);"></div>
+                        </div>
+                    </div>
+                    <div class="indicator" data-type="fish-bird">
+                        <div class="indicator-header">
+                            <span class="indicator-name">鱼虾、鸟类</span>
+                            <span class="indicator-value" id="fishBirdValue">30%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="fishBirdBar" style="width: 30%; background: linear-gradient(90deg, #e74c3c, #f39c12);"></div>
+                        </div>
+                    </div>
+                    <div class="indicator" data-type="bird-count">
+                        <div class="indicator-header">
+                            <span class="indicator-name">鸟类数量 <span class="status-badge status-low">增长最显著</span></span>
+                            <span class="indicator-value" id="birdCountValue">20%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="birdCountBar" style="width: 20%; background: linear-gradient(90deg, #e74c3c, #f39c12);"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 气候要素 -->
+                <div class="dashboard-card" id="climateCard">
+                    <div class="card-header">
+                        <div class="card-icon">☁️☀️</div>
+                        <h3 class="card-title">气候要素</h3>
+                    </div>
+                    <div class="indicator" data-type="humidity">
+                        <div class="indicator-header">
+                            <span class="indicator-name">空气湿度</span>
+                            <span class="indicator-value" id="humidityValue">38%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="humidityBar" style="width: 38%; background: linear-gradient(90deg, #e74c3c, #f39c12);"></div>
+                        </div>
+                    </div>
+                    <div class="indicator" data-type="temp-regulation">
+                        <div class="indicator-header">
+                            <span class="indicator-name">温度调节</span>
+                            <span class="indicator-value" id="tempRegulationValue">33%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="tempRegulationBar" style="width: 33%; background: linear-gradient(90deg, #e74c3c, #f39c12);"></div>
+                        </div>
+                    </div>
+                    <div class="indicator" data-type="precipitation-regulation">
+                        <div class="indicator-header">
+                            <span class="indicator-name">降水调节量</span>
+                            <span class="indicator-value" id="precipitationRegulationValue">35%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="precipitationRegulationBar" style="width: 35%; background: linear-gradient(90deg, #e74c3c, #f39c12);"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 文字提示区域 -->
+            <aside class="text-section">
+                <h3 class="text-title">📋 生态连锁反应</h3>
+                <div id="reactionContent">
+                    <div class="reaction-item">
+                        <div class="reaction-title">🔄 系统状态</div>
+                        <div class="reaction-content">
+                            拖动滑块或进度条，观察生态系统的连锁反应...
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        // 数据模型
+        const ecoData = {
+            minRatio: 50,
+            maxRatio: 90,
+            indicators: {
+                waterStorage: { min: 20, max: 85, weight: 1.0 },
+                waterQuality: { min: 15, max: 90, weight: 0.9 },
+                waterTransparency: { min: 30, max: 100, weight: 0.85 },
+                fertility: { min: 20, max: 80, weight: 0.85 },
+                salinityImprovement: { min: 10, max: 85, weight: 0.9 },
+                soilRetention: { min: 30, max: 85, weight: 0.8 },
+                plantDiversity: { min: 25, max: 82, weight: 0.95 },
+                fishBird: { min: 20, max: 90, weight: 0.85 },
+                birdCount: { min: 20, max: 95, weight: 1.2 }, // 增长最显著
+                humidity: { min: 25, max: 75, weight: 0.9 },
+                tempRegulation: { min: 10, max: 80, weight: 0.85 },
+                precipitationRegulation: { min: 20, max: 85, weight: 0.9 }
+            }
+        };
+
+        // DOM 元素
+        const mainSlider = document.getElementById('mainSlider');
+        const currentValueDisplay = document.getElementById('currentValue');
+        const reactionContent = document.getElementById('reactionContent');
+
+        // 指标元素映射
+        const indicatorElements = {
+            waterStorage: { bar: 'waterStorageBar', value: 'waterStorageValue' },
+            waterQuality: { bar: 'waterQualityBar', value: 'waterQualityValue' },
+            waterTransparency: { bar: 'waterTransparencyBar', value: 'waterTransparencyValue' },
+            fertility: { bar: 'fertilityBar', value: 'fertilityValue' },
+            salinityImprovement: { bar: 'salinityImprovementBar', value: 'salinityImprovementValue' },
+            soilRetention: { bar: 'soilRetentionBar', value: 'soilRetentionValue' },
+            plantDiversity: { bar: 'plantDiversityBar', value: 'plantDiversityValue' },
+            fishBird: { bar: 'fishBirdBar', value: 'fishBirdValue' },
+            birdCount: { bar: 'birdCountBar', value: 'birdCountValue' },
+            humidity: { bar: 'humidityBar', value: 'humidityValue' },
+            tempRegulation: { bar: 'tempRegulationBar', value: 'tempRegulationValue' },
+            precipitationRegulation: { bar: 'precipitationRegulationBar', value: 'precipitationRegulationValue' }
+        };
+
+        // 计算指标值
+        function calculateIndicatorValue(indicatorKey, ratio) {
+            const indicator = ecoData.indicators[indicatorKey];
+            const progress = (ratio - ecoData.minRatio) / (ecoData.maxRatio - ecoData.minRatio);
+            const adjustedProgress = Math.pow(progress, 1 / indicator.weight);
+            return Math.round(indicator.min + (indicator.max - indicator.min) * adjustedProgress);
+        }
+
+        // 获取颜色
+        function getColor(value) {
+            if (value < 40) {
+                const ratio = value / 40;
+                const r = 231;
+                const g = Math.round(76 + (156 - 76) * ratio);
+                const b = Math.round(60 + (18 - 60) * ratio);
+                return `rgb(${r}, ${g}, ${b})`;
+            } else if (value < 70) {
+                const ratio = (value - 40) / 30;
+                const r = Math.round(243 - (243 - 39) * ratio);
+                const g = Math.round(156 + (174 - 156) * ratio);
+                const b = Math.round(18 + (96 - 18) * ratio);
+                return `rgb(${r}, ${g}, ${b})`;
+            } else {
+                return '#27ae60';
+            }
+        }
+
+        // 更新所有指标
+        function updateAllIndicators(ratio) {
+            currentValueDisplay.textContent = ratio.toFixed(2);
+
+            for (const [key, elements] of Object.entries(indicatorElements)) {
+                const value = calculateIndicatorValue(key, ratio);
+                const bar = document.getElementById(elements.bar);
+                const valueDisplay = document.getElementById(elements.value);
+
+                // 对于水体透明度，显示cm单位
+                if (key === 'waterTransparency') {
+                    bar.style.width = (value / 100) * 100 + '%';
+                    bar.style.background = getColor(value / 100 * 100);
+                    valueDisplay.textContent = Math.round(value) + 'cm';
+                } else {
+                    bar.style.width = value + '%';
+                    bar.style.background = getColor(value);
+                    valueDisplay.textContent = Math.round(value) + '%';
+                }
+            }
+
+            updateReactionText(ratio);
+            updateBackgroundImage(ratio);
+        }
+
+        // 从指标值反推比例
+        function calculateRatioFromIndicator(indicatorKey, value) {
+            const indicator = ecoData.indicators[indicatorKey];
+            const normalizedValue = (value - indicator.min) / (indicator.max - indicator.min);
+            const progress = Math.pow(normalizedValue, indicator.weight);
+            return ecoData.minRatio + progress * (ecoData.maxRatio - ecoData.minRatio);
+        }
+
+        // 更新反应文字
+        function updateReactionText(ratio) {
+            const progress = ((ratio - ecoData.minRatio) / (ecoData.maxRatio - ecoData.minRatio) * 100).toFixed(1);
+            const status = progress < 33 ? '初始' : (progress < 66 ? '改善中' : '显著改善');
+            
+            let html = '';
+
+            if (progress > 0) {
+                html += `
+                    <div class="reaction-item">
+                        <div class="reaction-title">💧 水文变化</div>
+                        <div class="reaction-content">
+                            生态用地增加 <span class="arrow">→</span> 涵养水源能力增强 <span class="arrow">→</span> 
+                            <span class="highlight">蓄水量上升${Math.round(progress * 0.5)}%</span>，
+                            水质得到<span class="highlight">${status}</span>
+                        </div>
+                    </div>
+                `;
+
+                html += `
+                    <div class="reaction-item">
+                        <div class="reaction-title">🌱 土壤变化</div>
+                        <div class="reaction-content">
+                            生态用地增加 <span class="arrow">→</span> 土壤有机质积累 <span class="arrow">→</span> 
+                            <span class="highlight">肥力提升</span>，固土能力<span class="highlight">增强${Math.round(progress * 0.47)}%</span>
+                        </div>
+                    </div>
+                `;
+
+                html += `
+                    <div class="reaction-item">
+                        <div class="reaction-title">🐦 生物变化</div>
+                        <div class="reaction-content">
+                            生态用地增加 <span class="arrow">→</span> 栖息地改善 <span class="arrow">→</span> 
+                            生物多样性增加，其中<span class="highlight">鸟类数量增长最显著(+${Math.round(progress * 0.75)}%)</span>，
+                            鱼类丰富度和植物多样性同步提升
+                        </div>
+                    </div>
+                `;
+
+                html += `
+                    <div class="reaction-item">
+                        <div class="reaction-title">☁️ 气候变化</div>
+                        <div class="reaction-content">
+                            生态用地增加 <span class="arrow">→</span> 蒸发蒸腾作用增强 <span class="arrow">→</span> 
+                            <span class="highlight">空气湿度提高${Math.round(progress * 0.44)}%</span>，
+                            温度调节能力<span class="highlight">${status}</span>
+                        </div>
+                    </div>
+                `;
+
+                html += `
+                    <div class="reaction-item">
+                        <div class="reaction-title">🔄 系统总结</div>
+                        <div class="reaction-content">
+                            当前生态用地面积比例：<span class="highlight">${ratio.toFixed(2)}%</span><br>
+                            生态系统整体状态：<span class="highlight">${status}</span><br>
+                            综合改善程度：<span class="highlight">${progress}%</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                html = `
+                    <div class="reaction-item">
+                        <div class="reaction-title">🔄 系统状态</div>
+                        <div class="reaction-content">
+                            拖动滑块或进度条，观察生态系统的连锁反应...
+                        </div>
+                    </div>
+                `;
+            }
+
+            reactionContent.innerHTML = html;
+        }
+
+        // 主滑块事件
+        mainSlider.addEventListener('input', function() {
+            updateAllIndicators(parseFloat(this.value));
+        });
+
+        // 进度条拖动功能
+        document.querySelectorAll('.progress-bar').forEach(progressBar => {
+            let isDragging = false;
+            const indicator = progressBar.closest('.indicator');
+            const dataType = indicator.dataset.type;
+            
+            // 获取对应的指标键
+                        const typeToKey = {
+                            'water-storage': 'waterStorage',
+                            'water-quality': 'waterQuality',
+                            'water-transparency': 'waterTransparency',
+                            'fertility': 'fertility',
+                            'salinity-improvement': 'salinityImprovement',
+                            'soil-retention': 'soilRetention',
+                            'plant-diversity': 'plantDiversity',
+                            'fish-bird': 'fishBird',
+                            'bird-count': 'birdCount',
+                            'humidity': 'humidity',
+                            'temp-regulation': 'tempRegulation',
+                            'precipitation-regulation': 'precipitationRegulation'
+                        };
+
+            const indicatorKey = typeToKey[dataType];
+
+            const handleDrag = (e) => {
+                if (!isDragging) return;
+                
+                const rect = progressBar.getBoundingClientRect();
+                let x = e.clientX || (e.touches && e.touches[0].clientX);
+                let percentage = ((x - rect.left) / rect.width) * 100;
+                percentage = Math.max(ecoData.indicators[indicatorKey].min, 
+                            Math.min(ecoData.indicators[indicatorKey].max, percentage));
+
+                // 从当前指标值反推比例
+                const newRatio = calculateRatioFromIndicator(indicatorKey, percentage);
+                const clampedRatio = Math.max(ecoData.minRatio, Math.min(ecoData.maxRatio, newRatio));
+                
+                mainSlider.value = clampedRatio;
+                updateAllIndicators(clampedRatio);
+            };
+
+            progressBar.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                handleDrag(e);
+            });
+
+            progressBar.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                handleDrag(e);
+            });
+
+            document.addEventListener('mousemove', handleDrag);
+            document.addEventListener('touchmove', handleDrag);
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            document.addEventListener('touchend', () => {
+                isDragging = false;
+            });
+        });
+
+        // 更新背景图效果
+        function updateBackgroundImage(ratio) {
+            const bgImage = document.getElementById('bgImage');
+            if (!bgImage) return;
+            
+            // 计算归一化比例 (50% -> 0, 90% -> 1)
+            const normalizedRatio = (ratio - ecoData.minRatio) / (ecoData.maxRatio - ecoData.minRatio);
+            
+            // 根据比例调整滤镜效果
+            const saturation = 0.6 + normalizedRatio * 0.9; // 0.6 -> 1.5
+            const brightness = 0.7 + normalizedRatio * 0.4; // 0.7 -> 1.1
+            const contrast = 1.2 - normalizedRatio * 0.3;   // 1.2 -> 0.9
+            
+            bgImage.style.filter = `saturate(${saturation}) contrast(${contrast}) brightness(${brightness})`;
+        }
+
+        // 初始化
+        updateAllIndicators(60.26);
+    </script>
+</body>
+</html>
